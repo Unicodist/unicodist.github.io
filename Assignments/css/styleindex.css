@@ -1,0 +1,28 @@
+header{
+	height: 100px;
+	background-color: #343A40;
+	color: white;
+	width: 100%;
+	text-align: center;
+	padding: 30px;
+	font-size: 60px;
+	font-family: chiller;
+}
+nav {
+	background-color: #343A40;
+	height: 50px;
+	width: 100%; 
+}
+nav button{
+	float: left;
+	height: 30px;
+	margin-left: 30px;
+	position: absolute;
+}
+body{
+    background-color: bisque;
+    color: darkmagenta;
+}
+.inst{
+    color: red;
+}
