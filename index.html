@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Plants — Quick List</title>
+  <style>
+    :root{--bg:#0f1720;--card:#0b1220;--muted:#9aa6b2;--accent:#1fb57f;--glass: rgba(255,255,255,0.03)}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;color:#e6eef2;background:linear-gradient(180deg,#071021 0%, #082233 60%);}
+    .wrap{max-width:1100px;margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+    header h1{font-size:20px;margin:0}
+    .controls{display:flex;gap:12px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+    .controls input[type=search], .controls select{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:10px 12px;border-radius:10px;color:inherit;min-width:160px}
+    .controls label{color:var(--muted);font-size:13px}
+    .toolbar{margin-left:auto;display:flex;gap:8px}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;cursor:pointer;color:inherit}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 18px rgba(7,18,28,0.6);}
+    .card .top{display:flex;gap:12px;align-items:center}
+    .badge{font-size:12px;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.02);color:var(--muted)}
+    .plant-ico{width:64px;height:64px;border-radius:10px;display:grid;place-items:center;font-size:34px;background:linear-gradient(135deg,rgba(255,255,255,0.02),rgba(0,0,0,0.02))}
+    h2{font-size:16px;margin:0}
+    .sci{color:var(--muted);font-size:13px;margin-top:4px}
+    p{color:var(--muted);font-size:13px;margin:10px 0 0}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .tag{background:rgba(255,255,255,0.02);padding:6px 8px;border-radius:8px;font-size:12px;color:var(--muted);border:1px solid rgba(255,255,255,0.02)}
+    footer{color:var(--muted);font-size:13px;margin-top:20px;text-align:center}
+    @media (max-width:520px){.controls input[type=search]{min-width:120px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 2s4 2 4 6-2 6-4 6-4-2-4-6 4-6 4-6z" stroke="#1fb57f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h1>Plants — Quick List</h1>
+      <div class="toolbar" style="margin-left:auto">
+        <button class="btn" id="downloadBtn">Download HTML</button>
+      </div>
+    </header>
+
+    <div class="controls">
+      <label style="display:flex;align-items:center;gap:8px"><input id="search" type="search" placeholder="Search plants (name, tag...)"> </label>
+      <select id="filterLight">
+        <option value="all">All light</option>
+        <option value="low">Low light</option>
+        <option value="medium">Medium light</option>
+        <option value="bright">Bright light</option>
+      </select>
+      <select id="sortBy">
+        <option value="name">Sort: Name</option>
+        <option value="difficulty">Sort: Difficulty</option>
+      </select>
+      <button class="btn" id="toggleView">Toggle compact</button>
+    </div>
+
+    <main id="list" class="grid" aria-live="polite"></main>
+
+    <footer>Built as a single HTML file — filter, search or download to save locally.</footer>
+  </div>
+
+  <script>
+    const plants = [
+      {name:'Monstera Deliciosa', sci:'Monstera deliciosa', light:'bright', water:'moderate', difficulty:2, tags:['tropical','vining'], desc:'Big split leaves, loves humidity and bright indirect light.'},
+      {name:'Snake Plant', sci:'Sansevieria trifasciata', light:'low', water:'low', difficulty:1, tags:['succulent-like','air-purifying'], desc:'Tough as nails — survives low light and irregular watering.'},
+      {name:'Spider Plant', sci:'Chlorophytum comosum', light:'medium', water:'moderate', difficulty:1, tags:['easy','pet-friendly'], desc:'Produces baby plantlets; great for hanging baskets.'},
+      {name:'Fiddle Leaf Fig', sci:'Ficus lyrata', light:'bright', water:'moderate', difficulty:3, tags:['statement','indoors'], desc:'Large dramatic leaves — prefers bright, consistent light.'},
+      {name:'ZZ Plant', sci:'Zamioculcas zamiifolia', light:'low', water:'low', difficulty:1, tags:['tough','low-care'], desc:'Glossy leaves and near-indestructible in indoor conditions.'},
+      {name:'Pothos (Golden)', sci:'Epipremnum aureum', light:'medium', water:'moderate', difficulty:1, tags:['vining','fast-growing'], desc:'Fast grower that tolerates many conditions; perfect for beginners.'},
+      {name:'Peace Lily', sci:'Spathiphyllum', light:'low', water:'moderate', difficulty:2, tags:['flowering','shade'], desc:'Sends up white blooms; wilts when thirsty (easy to read).'},
+      {name:'Aloe Vera', sci:'Aloe vera', light:'bright', water:'low', difficulty:1, tags:['succulent','medicinal'], desc:'Succulent with soothing gel — needs bright light and sparse water.'}
+    ];
+
+    const list = document.getElementById('list');
+    const searchInput = document.getElementById('search');
+    const filterLight = document.getElementById('filterLight');
+    const sortBy = document.getElementById('sortBy');
+    const toggleView = document.getElementById('toggleView');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    function render(items){
+      list.innerHTML = '';
+      if(!items.length){ list.innerHTML = '<p style="color:var(--muted)">No plants match your filters.</p>'; return }
+      for(const p of items){
+        const card = document.createElement('article'); card.className='card';
+        card.innerHTML = `
+          <div class="top">
+            <div class="plant-ico" aria-hidden>${emojiFor(p)}</div>
+            <div style="flex:1">
+              <h2>${p.name}</h2>
+              <div class="sci">${p.sci}</div>
+            </div>
+            <div class="badge">${p.light} light</div>
+          </div>
+          <p>${p.desc}</p>
+          <div class="meta">
+            <div class="tag">Water: ${p.water}</div>
+            <div class="tag">Difficulty: ${p.difficulty}</div>
+            ${p.tags.map(t=>`<div class="tag">${t}</div>`).join('')}
+          </div>
+        `;
+        list.appendChild(card);
+      }
+    }
+
+    function emojiFor(p){
+      // simple mapping for friendly visuals
+      if(p.tags.includes('succulent')||p.name.toLowerCase().includes('aloe')) return '🌵';
+      if(p.name.toLowerCase().includes('monstera')) return '🌿';
+      if(p.name.toLowerCase().includes('snake')) return '🪴';
+      if(p.name.toLowerCase().includes('pothos')) return '🍃';
+      if(p.name.toLowerCase().includes('peace')) return '🌸';
+      if(p.name.toLowerCase().includes('fiddle')) return '🎋';
+      return '🌱';
+    }
+
+    function applyFilters(){
+      const q = searchInput.value.trim().toLowerCase();
+      const light = filterLight.value;
+      let out = plants.filter(p=>{
+        if(light!=='all' && p.light !== light) return false;
+        if(!q) return true;
+        const hay = (p.name+' '+p.sci+' '+p.tags.join(' ')+' '+p.desc).toLowerCase();
+        return hay.includes(q);
+      });
+      if(sortBy.value==='name') out.sort((a,b)=>a.name.localeCompare(b.name));
+      if(sortBy.value==='difficulty') out.sort((a,b)=>a.difficulty - b.difficulty);
+      render(out);
+    }
+
+    // initial render
+    render(plants.slice().sort((a,b)=>a.name.localeCompare(b.name)));
+
+    searchInput.addEventListener('input', applyFilters);
+    filterLight.addEventListener('change', applyFilters);
+    sortBy.addEventListener('change', applyFilters);
+
+    toggleView.addEventListener('click', ()=>{
+      list.classList.toggle('compact');
+      if(list.classList.contains('compact')){
+        list.style.gridTemplateColumns = '1fr';
+        toggleView.textContent='Toggle grid';
+      } else {
+        list.style.gridTemplateColumns='repeat(auto-fill,minmax(240px,1fr))';
+        toggleView.textContent='Toggle compact';
+      }
+    });
+
+    // download self-contained HTML
+    downloadBtn.addEventListener('click', ()=>{
+      const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'plants-list.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
