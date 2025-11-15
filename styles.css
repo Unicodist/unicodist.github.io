@@ -1,0 +1,54 @@
+body {
+    background-color: black;
+    color: white;
+    margin: 0;
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content {
+    display: flex;
+    gap: 5px;
+}
+
+.navbar {
+    background-color: grey;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 50px;
+    padding: 15px;
+}
+
+.logo > a {
+    text-decoration: none;
+}
+
+.links > a {
+    text-decoration: none;
+    border: 1px solid white;
+    padding: 5px;
+    color: white;
+    border-radius: 5px;
+}
+
+.content {
+    border: 1px solid black;
+}
+
+.sidebar {
+    border: 1px solid black;
+    width: 200px;
+}
+
+.main {
+    border: 1px solid black;
+    flex-grow: 1;
+}
+
+.footer {
+    border: 1px solid black;
+    margin-top: auto;
+}
